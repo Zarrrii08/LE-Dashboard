@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Log System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <!-- DataTables Responsive CSS -->
+    <link href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.bootstrap5.min.css" rel="stylesheet">
+    <!-- Bootstrap Datepicker CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+            overflow-x: hidden; /* Prevent horizontal scroll when slide-in is open */
+        }
+        .card {
+            border-radius: 8px;
+            border: 1px solid #bde0ed;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            width: 100%;
+        }
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #bde0ed;
+            font-weight: bold;
+            padding: 15px 20px;
+            color: #555;
+        }
+        .form-control, .form-select {
+            border: 1px solid #bde0ed;
+            border-radius: 4px;
+            height: 38px;
+        }
+        .btn-search {
+            background-color: #4baed5;
+            border-color: #4baed5;
+            color: white;
+        }
+        .btn-search:hover {
+            background-color: #3a9cc3;
+            border-color: #3a9cc3;
+            color: white;
+        }
+        .btn-reset {
+            background-color: #ffd24d;
+            border-color: #ffd24d;
+            color: #555;
+        }
+        .btn-reset:hover {
+            background-color: #ffc82e;
+            border-color: #ffc82e;
+            color: #555;
+        }
+        .badge-completed {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .table {
+            width: 100% !important;
+            margin: 0 !important;
+            table-layout: auto;
+            white-space: nowrap;
+        }
+        .table th {
+            font-weight: 600;
+            color: #555;
+            background-color: #f8f9fa;
+            white-space: nowrap;
+        }
+        .table td {
+            white-space: nowrap;
+            overflow: visible;
+        }
+        .table td, .table th {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-color: #bde0ed;
+        }
+        .table-bordered {
+            border: 1px solid #bde0ed;
+        }
+        .action-btn {
+            color: #4baed5;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .action-btn:hover {
+            color: #3a9cc3;
+        }
+        .pagination .page-item .page-link {
+            color: #4baed5;
+            border-color: #bde0ed;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #4baed5;
+            border-color: #4baed5;
+            color: white;
+        }
+        .datepicker {
+            border: 1px solid #bde0ed;
+        }
+        .input-group-text {
+            background-color: #fff;
+            border: 1px solid #bde0ed;
+        }
+        .dataTables_length select, .dataTables_filter input {
+            border: 1px solid #bde0ed !important;
+        }
+        .dataTables_info {
+            color: #666;
+            font-size: 14px;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 0.3em 0.8em;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #4baed5;
+            color: white !important;
+            border-color: #4baed5;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #e9ecef;
+            color: #333 !important;
+        }
+        /* Remove any extra padding/margin from DataTables wrapper */
+        .dataTables_wrapper {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        /* Ensure container takes full width */
+        .container-fluid {
+            width: 100%;
+            padding-right: 15px;
+            padding-left: 15px;
+            margin-right: auto;
+            margin-left: auto;
+        }
+        .card-body {
+            padding: 15px;
+        }
+        /* Ensure horizontal scrolling works well on mobile */
+        @media (max-width: 767px) {
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            body {
+                padding: 10px;
+            }
+            .container-fluid {
+                padding-right: 5px;
+                padding-left: 5px;
+            }
+        }
+
+        /* Slide-in panel styles */
+        .slide-panel {
+    position: fixed;
+    top: 0;
+    right: -3000px;
+    width: 60%;
+    height: 100%;
+    background-color: white;
+    z-index: 1050;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
+    overflow-y: auto;
+    padding: 60px 20px 30px 40px;
+}
+        .slide-panel.active {
+            right: 0;
+        }
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            display: none;
+        }
+        .panel-overlay.active {
+            display: block;
+        }
+        .panel-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #555;
+        }
+        .details-section {
+            border: 1px solid #bde0ed;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .details-header {
+            background-color: #4baed5;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .details-content {
+            padding: 15px;
+        }
+        .details-row {
+            display: flex;
+            border-bottom: 1px solid #eee;
+        }
+        .details-row:last-child {
+            border-bottom: none;
+        }
+        .details-label {
+            width: 40%;
+            padding: 10px 15px;
+            font-weight: 600;
+            color: #555;
+        }
+        .details-value {
+            width: 60%;
+            padding: 10px 15px;
+        }
+        .recording-status {
+            width: 20px;
+            height: 20px;
+            background-color: #4169e1;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .audio-player {
+            background-color: #f5f5f5;
+            border-radius: 20px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .audio-play {
+            background-color: #fff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .audio-time {
+            font-size: 12px;
+            color: #666;
+        }
+        .audio-progress {
+            flex-grow: 1;
+            height: 4px;
+            background-color: #ddd;
+            border-radius: 2px;
+            position: relative;
+        }
+        .audio-volume {
+            cursor: pointer;
+        }
+        .audio-options {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid px-0">
+        <!-- Search Filters Card -->
+        <div class="card w-100">
+            <div class="card-header">SEARCH FILTERS</div>
+            <div class="card-body">
+                <form id="search-form">
+                    <div class="row mb-3">
+                        <div class="col-md-3 mb-3">
+                            <label for="booking-ref" class="form-label">Booking Ref</label>
+                            <input type="text" class="form-control" id="booking-ref" placeholder="e.g. 123456">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="access-code" class="form-label">ACCESS CODE</label>
+                            <input type="text" class="form-control" id="access-code" placeholder="e.g. 12345678">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">FROM / TO DATE</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control datepicker" id="from-date" placeholder="From">
+                                <span class="input-group-text">
+                                    <i class="fa-regular fa-calendar"></i>
+                                </span>
+                                <input type="text" class="form-control datepicker" id="to-date" placeholder="To">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="status" class="form-label">STATUS</label>
+                            <select class="form-select" id="status">
+                                <option selected>Select Call Status</option>
+                                <option value="completed">Completed</option>
+                                <option value="pending">Pending</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-search me-2">
+                                <i class="fa fa-search me-2"></i> SEARCH
+                            </button>
+                            <button type="reset" class="btn btn-reset">
+                                <i class="fa fa-rotate me-2"></i> RESET
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Call Log Card -->
+        <div class="card w-100">
+            <div class="card-header">ONDEMAND CALL LOG</div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="me-2">Show</span>
+                    <select id="length-select" class="form-select form-select-sm" style="width: auto;">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                    <span class="ms-2">Records</span>
+                </div>
+                
+                <div class="table-responsive w-100 p-0">
+                    <table id="call-log-table" class="table table-bordered table-hover w-100">
+                        <thead>
+                            <tr>
+                                <th>BOOKING REF.</th>
+                                <th>CALL FROM</th>
+                                <th>CALL DATE TIME</th>
+                                <th>ACCESS CODE</th>
+                                <th>LANGUAGE NAME</th>
+                                <th>INT. ID CARD</th>
+                                <th>DURATION</th>
+                                <th>CALL STATUS</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-id="188995">
+                                <td>188995</td>
+                                <td>Android</td>
+                                <td>17/04/2025, 3:26:29 pm</td>
+                                <td>50358001</td>
+                                <td>Arabic - All or Any</td>
+                                <td></td>
+                                <td>0:00:00</td>
+                                <td><span class="badge-completed">Completed</span></td>
+                                <td>
+                                    <button class="action-btn view-details">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr data-id="188994">
+                                <td>188994</td>
+                                <td>Android</td>
+                                <td>17/04/2025, 11:34:27 am</td>
+                                <td>50358001</td>
+                                <td>Arabic - All or Any</td>
+                                <td>10240</td>
+                                <td>0:01:15</td>
+                                <td><span class="badge-completed">Completed</span></td>
+                                <td>
+                                    <button class="action-btn view-details">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr data-id="188993">
+                                <td>188993</td>
+                                <td>Android</td>
+                                <td>17/04/2025, 11:30:31 am</td>
+                                <td>50358001</td>
+                                <td>Arabic - All or Any</td>
+                                <td></td>
+                                <td>0:00:00</td>
+                                <td><span class="badge-completed">Completed</span></td>
+                                <td>
+                                    <button class="action-btn view-details">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr data-id="188988">
+                                <td>188988</td>
+                                <td>+443302020350</td>
+                                <td>15/04/2025, 12:36:15 pm</td>
+                                <td>50358001</td>
+                                <td>Arabic - All or Any</td>
+                                <td></td>
+                                <td>0:01:13</td>
+                                <td><span class="badge-completed">Completed</span></td>
+                                <td>
+                                    <button class="action-btn view-details">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr data-id="188983">
+                                <td>188983</td>
+                                <td>anonymous</td>
+                                <td>11/04/2025, 3:27:52 pm</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>0:00:00</td>
+                                <td><span class="badge-completed">Completed</span></td>
+                                <td>
+                                    <button class="action-btn view-details">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide-in Panel Overlay -->
+    <div class="panel-overlay"></div>
+
+    <!-- Slide-in Panel -->
+    <div class="slide-panel">
+        <div class="panel-close">
+            <i class="fa fa-times"></i>
+        </div>
+
+        <!-- Client Details Section -->
+        <div class="details-section">
+            <div class="details-header">CLIENT DETAILS</div>
+            <div class="details-content">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Company Name:</label>
+                            <div id="company-name"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Department Name:</label>
+                            <div id="department-name"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Access Code:</label>
+                            <div id="access-code-value">50358001</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label">Professional Name:</label>
+                            <div id="professional-name"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conference Details Section -->
+        <div class="details-section">
+            <div class="details-header">CONFERENCE DETAILS</div>
+            <div class="details-content">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Booking Reference:</label>
+                            <div id="booking-reference">188995</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Call Date Time:</label>
+                            <div id="call-date-time">17/04/2025 03:26:29 PM</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Language:</label>
+                            <div id="language">Arabic - All or Any</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Gender:</label>
+                            <div id="gender">Any</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Interpreter Id Card No:</label>
+                            <div id="interpreter-id"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Conference Status:</label>
+                            <div id="conference-status"><span class="badge-completed">Completed</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label">Operator Name:</label>
+                            <div id="operator-name"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recording Details Section -->
+        <div class="details-section">
+            <div class="details-header">RECORDING DETAILS</div>
+            <div class="details-content">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Recording Status:</label>
+                            <div>
+                                <span class="recording-status"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Recording Duration:</label>
+                            <div id="recording-duration">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Recording Media:</label>
+                            <div class="audio-player">
+                                <div class="audio-controls">
+                                    <div class="audio-play">
+                                        <i class="fa fa-play"></i>
+                                    </div>
+                                </div>
+                                <div class="audio-time">0:00 / 0:00</div>
+                                <div class="audio-progress"></div>
+                                <div class="audio-volume">
+                                    <i class="fa fa-volume-off"></i>
+                                </div>
+                                <div class="audio-options">
+                                    <i class="fa fa-ellipsis-v"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <!-- DataTables Responsive JS -->
+    <script src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.4.1/js/responsive.bootstrap5.min.js"></script>
+    <!-- Bootstrap Datepicker JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Initialize DataTable
+            var table = $('#call-log-table').DataTable({
+                lengthMenu: [5, 10, 25, 50],
+                pageLength: 5,
+                scrollX: true,
+                autoWidth: false,
+                language: {
+                    lengthMenu: "Show _MENU_ Records",
+                    info: "Showing _START_ - _END_ of _TOTAL_ Records",
+                    paginate: {
+                        previous: "Previous",
+                        next: "Next"
+                    }
+                },
+                dom: '<"row"<"col-sm-12"tr>>' +
+                     '<"row"<"col-sm-5"i><"col-sm-7"p>>',
+                responsive: true,
+                columnDefs: [
+                    { width: '10%', targets: 0 }, // BOOKING REF
+                    { width: '10%', targets: 1 }, // CALL FROM
+                    { width: '15%', targets: 2 }, // CALL DATE TIME
+                    { width: '10%', targets: 3 }, // ACCESS CODE
+                    { width: '15%', targets: 4 }, // LANGUAGE NAME
+                    { width: '10%', targets: 5 }, // INT. ID CARD
+                    { width: '10%', targets: 6 }, // DURATION
+                    { width: '10%', targets: 7 }, // CALL STATUS
+                    { width: '10%', targets: 8 }  // ACTIONS
+                ]
+            });
+            
+            // Force table to take full width
+            $('#call-log-table').css('width', '100%');
+            
+            // Adjust columns on initial load
+            setTimeout(function() {
+                table.columns.adjust().draw();
+            }, 100);
+            
+            // Custom length menu
+            $('#length-select').on('change', function() {
+                table.page.len($(this).val()).draw();
+            });
+
+            // Initialize Datepicker
+            $('.datepicker').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true,
+                todayHighlight: true
+            });
+
+            // Search form submission
+            $('#search-form').on('submit', function(e) {
+                e.preventDefault();
+                // Get form values
+                const bookingRef = $('#booking-ref').val();
+                const accessCode = $('#access-code').val();
+                const fromDate = $('#from-date').val();
+                const toDate = $('#to-date').val();
+                const status = $('#status').val();
+                
+                // You would typically send these values to your server
+                // For demo purposes, we'll just log them
+                console.log({
+                    bookingRef,
+                    accessCode,
+                    fromDate,
+                    toDate,
+                    status
+                });
+                
+                // For demo, we'll just reload the table
+                table.draw();
+            });
+
+            // Reset button
+            $('#search-form button[type="reset"]').on('click', function() {
+                $('#booking-ref').val('');
+                $('#access-code').val('');
+                $('#from-date').val('');
+                $('#to-date').val('');
+                $('#status').val('Select Call Status');
+                
+                // Reset the DataTable
+                table.search('').columns().search('').draw();
+            });
+            
+            // Adjust table when window resizes
+            $(window).resize(function() {
+                table.columns.adjust().draw();
+            });
+
+            // Slide-in panel functionality
+            $('.view-details').on('click', function() {
+                // Get the row data
+                var row = $(this).closest('tr');
+                var id = row.data('id');
+                var bookingRef = row.find('td:eq(0)').text();
+                var callFrom = row.find('td:eq(1)').text();
+                var callDateTime = row.find('td:eq(2)').text();
+                var accessCode = row.find('td:eq(3)').text();
+                var language = row.find('td:eq(4)').text();
+                var intIdCard = row.find('td:eq(5)').text();
+                var duration = row.find('td:eq(6)').text();
+                var status = row.find('td:eq(7)').text();
+                
+                // Update the slide-in panel with the data
+                $('#booking-reference').text(bookingRef);
+                $('#call-date-time').text(callDateTime);
+                $('#language').text(language);
+                $('#interpreter-id').text(intIdCard);
+                $('#access-code-value').text(accessCode);
+                
+                // Show the panel
+                $('.panel-overlay').addClass('active');
+                $('.slide-panel').addClass('active');
+                
+                // Prevent body scrolling when panel is open
+                $('body').css('overflow', 'hidden');
+            });
+            
+            // Close panel when clicking the close button or overlay
+            $('.panel-close, .panel-overlay').on('click', function() {
+                $('.panel-overlay').removeClass('active');
+                $('.slide-panel').removeClass('active');
+                
+                // Restore body scrolling
+                $('body').css('overflow', 'auto');
+            });
+            
+            // Audio player functionality (demo only)
+            $('.audio-play').on('click', function() {
+                var icon = $(this).find('i');
+                if (icon.hasClass('fa-play')) {
+                    icon.removeClass('fa-play').addClass('fa-pause');
+                } else {
+                    icon.removeClass('fa-pause').addClass('fa-play');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
